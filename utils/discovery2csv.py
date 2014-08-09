@@ -43,7 +43,7 @@ def main():
             
             if 'video_type' in doc and args.type == 'flv':
                 flv_file_discovery(doc, writer)
-            elif 'type' in doc and doc['type'] == 'discover':
+            elif 'type' in doc and doc['type'] == 'discover' and args.type != 'flv':
                 if args.type == 'user':
                     user_discovery(doc, writer)
                 else:
@@ -54,7 +54,7 @@ def main():
 def flv_file_discovery(doc, writer):
     if len(doc['urls']) == 0:
         writer.writerow([doc['id'], -1, None, None])
-
+        
     for index in range(len(doc['urls'])):
         url = doc['urls'][index]
         writer.writerow([doc['id'], index, url, doc['video_type']])
