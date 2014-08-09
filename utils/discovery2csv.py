@@ -15,6 +15,7 @@ def main():
     arg_parser.add_argument('directory')
     arg_parser.add_argument('csv_file')
     arg_parser.add_argument('type', choices=['flv', 'user', 'video'])
+    arg_parser.add_argument('--no-header', dest='header', default=True, action='store_false')
     
     args = arg_parser.parse_args()
     filenames = itertools.chain(
@@ -25,15 +26,16 @@ def main():
     with open(args.csv_file, 'w', newline='') as csv_file:
         writer = csv.writer(csv_file)
         
-        if args.type == 'flv':
-            writer.writerow(['video_id', 'index', 'url', 'type'])
-        elif args.type == 'user':
-            # is a plaintext file, no header needed
-            pass
-        elif args.type == 'video':
-            writer.writerow(['video_id', 'username', 'views'])
-        else:
-            raise Exception('Unsupported CSV type')
+        if args.header:
+            if args.type == 'flv':
+                writer.writerow(['video_id', 'index', 'url', 'type'])
+            elif args.type == 'user':
+                # is a plaintext file, no header needed
+                pass
+            elif args.type == 'video':
+                writer.writerow(['video_id', 'username', 'views'])
+            else:
+                raise Exception('Unsupported CSV type')
     
         for filename in filenames:
             with gzip.GzipFile(filename, mode='rb') as in_file:
