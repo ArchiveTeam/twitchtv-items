@@ -31,7 +31,7 @@ def main():
             # is a plaintext file, no header needed
             pass
         elif args.type == 'video':
-            writer.writerow(['video_id', 'views'])
+            writer.writerow(['video_id', 'username', 'views'])
         else:
             raise Exception('Unsupported CSV type')
     
@@ -41,13 +41,12 @@ def main():
             
             if 'video_type' in doc and args.type == 'flv':
                 flv_file_discovery(doc, writer)
-            elif doc['type'] == 'discovery':
+            elif 'type' in doc and doc['type'] == 'discover':
                 if args.type == 'user':
                     user_discovery(doc, writer)
                 else:
                     video_discovery(doc, writer)
-            else:
-                raise Exception('Unsupported discovery result')
+                
 
 
 def flv_file_discovery(doc, writer):
@@ -65,8 +64,9 @@ def user_discovery(doc, writer):
 
 
 def video_discovery(doc, writer):
+    username = doc['username']
     for video_id, views in doc['videos']:
-        writer.writerow([video_id, views])
+        writer.writerow([video_id, username, views])
     
 
 if __name__ == '__main__':
