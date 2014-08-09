@@ -25,7 +25,7 @@ def main():
         
         if 'video_type' in doc:
             flv_file_discovery(doc)
-        elif doc['type'] == 'discovery':
+        elif doc['type'] == 'discover':
             user_and_video_discovery(doc)
         else:
             raise Exception('Unknown discovery result')
@@ -41,7 +41,7 @@ def user_and_video_discovery(doc):
         print('user:{}'.format(user))
     
     for video in doc['videos']:
-        print('flv:{}'.format(video))
+        print('flv:{}'.format(video[0]))
     
 
 if __name__ == '__main__':
