@@ -4,6 +4,8 @@ import csv
 import os.path
 import re
 import shelve
+import random
+import requests
 
 
 HIGHLIGHTS = ['highlights_top.csv', 'highlights_top_02.csv', 'highlights_top_03.csv']
@@ -13,6 +15,7 @@ VIDEO_TOP = ['video_top_discovery.csv']
 
 def main():
     arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument('--database', default='twitchy.db')
     subparsers = arg_parser.add_subparsers(title='commands')
 
     import_parser = subparsers.add_parser('import')
@@ -28,17 +31,27 @@ def main():
 
     count_parser = subparsers.add_parser('count')
     count_parser.add_argument('type', default='videos', choices=['videos', 'flvs'])
-    count_parser.add_argument('--views-limit', type=int)
+    count_parser.add_argument('--views-min', type=int)
     count_parser.set_defaults(func=count_command)
 
     missing_flv_parser = subparsers.add_parser('missingflv')
-    missing_flv_parser.add_argument('--views-limit', type=int)
+    missing_flv_parser.add_argument('--views-min', type=int)
     missing_flv_parser.add_argument('--user')
     missing_flv_parser.set_defaults(func=missing_flv_command)
 
+    top_parser = subparsers.add_parser('gettop')
+    top_parser.add_argument('views_min', type=int)
+    top_parser.set_defaults(func=get_top_command)
+
+    sample_size_parser = subparsers.add_parser('samplesize')
+    sample_size_parser.set_defaults(func=sample_size_command)
+
     args = arg_parser.parse_args()
-    args.db = shelve.open('twitchy.db')
-    args.func(args)
+    args.db = shelve.open(args.database)
+    if hasattr(args, 'func'):
+        args.func(args)
+    else:
+        arg_parser.print_usage()
     args.db.close()
 
 
@@ -91,6 +104,8 @@ def import_data(args):
 
                 if index >= 0:
                     doc['flv'][index] = url
+                elif index == -1:
+                    doc['no_flv'] = True
 
                 doc['type'] = type_
 
@@ -123,10 +138,13 @@ def get_flv(args):
     if args.video_id not in db:
         raise Exception('Video ID not in db.')
 
+    if db[args.video_id].get('no_flv'):
+        raise Exception('Video explicitly has no FLVs.')
+
     flv_dict = db[args.video_id].get('flv')
 
     if flv_dict is None:
-        raise Exception('FLVs not found.')
+        raise Exception('FLVs not in database.')
 
     for index in sorted(flv_dict.keys()):
         print(flv_dict[index])
@@ -145,7 +163,7 @@ def get_flv_list(args):
         flv_dict = doc.get('flv')
 
         if flv_dict is None:
-            raise Exception('FLVs not found.', video_id, doc['user'])
+            raise Exception('FLVs not in database.', video_id, doc['user'])
 
         for index in sorted(flv_dict.keys()):
             print(flv_dict[index])
@@ -157,7 +175,7 @@ def count_command(args):
 
     for video_id in db:
         doc = db[video_id]
-        if args.views_limit and doc['views'] < args.views_limit:
+        if args.views_min and doc['views'] < args.views_min:
             continue
 
         if args.type == 'videos':
@@ -173,16 +191,70 @@ def missing_flv_command(args):
 
     for video_id in db:
         doc = db[video_id]
-        if args.views_limit and doc['views'] < args.views_limit:
-                continue
+        if args.views_min and doc['views'] < args.views_min:
+            continue
 
         if args.user and doc['user'] != args.user:
             continue
 
         flv_dict = doc.get('flv')
 
-        if not flv_dict:
+        if flv_dict is None:
             print(video_id)
+
+
+def get_top_command(args):
+    db = args.db
+
+    for video_id in db:
+        doc = db[video_id]
+        if doc['views'] < args.views_min:
+            continue
+
+        print(video_id, doc['user'], doc['views'])
+
+
+def sample_size_command(args):
+    db = args.db
+
+    count = 0
+    total = 0
+    video_ids = random.sample(db.keys(), 5000)
+
+    for video_id in video_ids:
+        if count >= 1000:
+            break
+
+        doc = db[video_id]
+        flv_doc = doc.get('flv')
+
+        if not flv_doc:
+            continue
+
+        print('Checking', video_id, 'Count=', count, 'Total=', total,
+              'Avg=', int(total / count) if count else 0)
+
+        indexes = list(flv_doc.keys())
+        indexes = random.sample(indexes, random.randint(1, len(indexes)))
+
+        for index in indexes:
+            url = flv_doc[index]
+            print(url)
+
+            try:
+                response = requests.head(url)
+            except requests.exceptions.RequestException as error:
+                print(error)
+                continue
+
+            if response.status_code != 200:
+                print(response.status_code)
+                continue
+
+            total += int(response.headers['Content-Length'])
+            count += 1
+
+    print('Count=', count, 'Total=', total, 'Avg=', int(total / count))
 
 
 if __name__ == '__main__':
