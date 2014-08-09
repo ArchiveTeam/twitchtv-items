@@ -27,6 +27,8 @@ def main():
     get_flv_list_parser.set_defaults(func=get_flv_list)
 
     count_parser = subparsers.add_parser('count')
+    count_parser.add_argument('type', default='videos', choices=['videos', 'flvs'])
+    count_parser.add_argument('--views-limit', type=int)
     count_parser.set_defaults(func=count_command)
 
     missing_flv_parser = subparsers.add_parser('missingflv')
@@ -150,7 +152,20 @@ def get_flv_list(args):
 
 
 def count_command(args):
-    print(len(args.db))
+    count = 0
+    db = args.db
+
+    for video_id in db:
+        doc = db[video_id]
+        if args.views_limit and doc['views'] < args.views_limit:
+            continue
+
+        if args.type == 'videos':
+            count += 1
+        else:
+            count += len(doc.get('flv', ()))
+
+    print(count)
 
 
 def missing_flv_command(args):
