@@ -8,7 +8,7 @@ import random
 import requests
 
 
-HIGHLIGHTS = ['highlights_top.csv', 'highlights_top_02.csv', 'highlights_top_03.csv']
+HIGHLIGHTS = ['highlights_top.csv', 'highlights_top_02.csv', 'highlights_top_03.csv', 'highlights_top_04.csv']
 FLV_URLS = ['highlights_top_flv_01.csv', 'highlights_top_flv_02-03.csv', 'disco_top_1000_views_flv.csv']
 VIDEO_TOP = ['video_top_discovery.csv']
 
@@ -42,6 +42,10 @@ def main():
     top_parser = subparsers.add_parser('gettop')
     top_parser.add_argument('views_min', type=int)
     top_parser.set_defaults(func=get_top_command)
+
+    by_user_parser = subparsers.add_parser('byuser')
+    by_user_parser.add_argument('user')
+    by_user_parser.set_defaults(func=by_user_command)
 
     sample_size_parser = subparsers.add_parser('samplesize')
     sample_size_parser.set_defaults(func=sample_size_command)
@@ -255,6 +259,15 @@ def sample_size_command(args):
             count += 1
 
     print('Count=', count, 'Total=', total, 'Avg=', int(total / count))
+
+
+def by_user_command(args):
+    db = args.db
+
+    for video_id in db:
+        doc = db[video_id]
+        if doc['user'] == args.user:
+            print(video_id, doc['user'], doc['views'])
 
 
 if __name__ == '__main__':
