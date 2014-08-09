@@ -7,7 +7,7 @@ import shelve
 
 
 HIGHLIGHTS = ['highlights_top.csv', 'highlights_top_02.csv', 'highlights_top_03.csv']
-FLV_URLS = ['highlights_top_flv_01.csv', 'highlights_top_flv_02-03.csv']
+FLV_URLS = ['highlights_top_flv_01.csv', 'highlights_top_flv_02-03.csv', 'disco_top_1000_views_flv.csv']
 VIDEO_TOP = ['video_top_discovery.csv']
 
 
@@ -21,6 +21,10 @@ def main():
     get_flv_parser = subparsers.add_parser('getflv')
     get_flv_parser.add_argument('video_id')
     get_flv_parser.set_defaults(func=get_flv)
+
+    get_flv_list_parser = subparsers.add_parser('getflvlist')
+    get_flv_list_parser.add_argument('video_ids_file', type=argparse.FileType('r'))
+    get_flv_list_parser.set_defaults(func=get_flv_list)
 
     count_parser = subparsers.add_parser('count')
     count_parser.set_defaults(func=count_command)
@@ -124,6 +128,25 @@ def get_flv(args):
 
     for index in sorted(flv_dict.keys()):
         print(flv_dict[index])
+
+
+def get_flv_list(args):
+    db = args.db
+
+    for line in args.video_ids_file:
+        video_id = line.strip()
+
+        if video_id not in db:
+            raise Exception('Video ID not in db.', video_id)
+
+        doc = db[video_id]
+        flv_dict = doc.get('flv')
+
+        if flv_dict is None:
+            raise Exception('FLVs not found.', video_id, doc['user'])
+
+        for index in sorted(flv_dict.keys()):
+            print(flv_dict[index])
 
 
 def count_command(args):
