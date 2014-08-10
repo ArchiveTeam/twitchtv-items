@@ -1,11 +1,12 @@
 '''Read the CSVs and collate them into queryable database'''
 import argparse
 import csv
+import json
 import os.path
-import re
-import shelve
 import random
+import re
 import requests
+import shelve
 
 
 HIGHLIGHTS = ['highlights_top.csv', 'highlights_top_02.csv', 'highlights_top_03.csv', 'highlights_top_04.csv']
@@ -21,6 +22,10 @@ def main():
     import_parser = subparsers.add_parser('import')
     import_parser.set_defaults(func=import_data)
 
+    get_parser = subparsers.add_parser('get')
+    get_parser.add_argument('video_id')
+    get_parser.set_defaults(func=get_command)
+
     get_flv_parser = subparsers.add_parser('getflv')
     get_flv_parser.add_argument('video_id')
     get_flv_parser.set_defaults(func=get_flv)
@@ -29,19 +34,20 @@ def main():
     get_flv_list_parser.add_argument('video_ids_file', type=argparse.FileType('r'))
     get_flv_list_parser.set_defaults(func=get_flv_list)
 
-    count_parser = subparsers.add_parser('count')
-    count_parser.add_argument('type', default='videos', choices=['videos', 'flvs'])
-    count_parser.add_argument('--views-min', type=int)
-    count_parser.set_defaults(func=count_command)
-
     missing_flv_parser = subparsers.add_parser('missingflv')
     missing_flv_parser.add_argument('--views-min', type=int)
     missing_flv_parser.add_argument('--user')
     missing_flv_parser.set_defaults(func=missing_flv_command)
 
-    top_parser = subparsers.add_parser('gettop')
-    top_parser.add_argument('views_min', type=int)
-    top_parser.set_defaults(func=get_top_command)
+    list_parser = subparsers.add_parser('list')
+    list_parser.add_argument('--type', default='videos', choices=['videos', 'flvs'])
+    list_parser.add_argument('--views-min', type=int)
+    list_parser.add_argument('--views-max', type=int)
+    list_parser.add_argument('--date-min')
+    list_parser.add_argument('--date-max')
+    list_parser.add_argument('--count-only', action='store_true')
+    list_parser.add_argument('--video-type', choices=['a', 'c'])
+    list_parser.set_defaults(func=list_command)
 
     by_user_parser = subparsers.add_parser('byuser')
     by_user_parser.add_argument('user')
@@ -136,6 +142,10 @@ def import_data(args):
                 db[video_id] = doc
 
 
+def get_command(args):
+    print(json.dumps(args.db[args.video_id], indent=2))
+
+
 def get_flv(args):
     db = args.db
 
@@ -173,23 +183,6 @@ def get_flv_list(args):
             print(flv_dict[index])
 
 
-def count_command(args):
-    count = 0
-    db = args.db
-
-    for video_id in db:
-        doc = db[video_id]
-        if args.views_min and doc['views'] < args.views_min:
-            continue
-
-        if args.type == 'videos':
-            count += 1
-        else:
-            count += len(doc.get('flv', ()))
-
-    print(count)
-
-
 def missing_flv_command(args):
     db = args.db
 
@@ -207,15 +200,62 @@ def missing_flv_command(args):
             print(video_id)
 
 
-def get_top_command(args):
+def list_command(args):
     db = args.db
+    count = 0
+    query_date_min = None
+    query_date_max = None
+
+    if args.date_min:
+        query_date_min = tuple(int(i) for i in args.date_min.split('-'))
+    if args.date_max:
+        query_date_max = tuple(int(i) for i in args.date_max.split('-'))
 
     for video_id in db:
         doc = db[video_id]
-        if doc['views'] < args.views_min:
+
+        if args.video_type and args.video_type != video_id[0]:
             continue
 
-        print(video_id, doc['user'], doc['views'])
+        if args.views_min and doc['views'] < args.views_min:
+            continue
+
+        if args.views_max and doc['views'] > args.views_max:
+            continue
+
+        flv_doc = doc.get('flv')
+
+        if query_date_min or query_date_max:
+            if not flv_doc:
+                continue
+
+            url = flv_doc[0]
+            match = re.search(r'(\d{2,4})-(\d{1,2})-(\d{1,2})', url)
+
+            if match:
+                flv_date = tuple(int(i) for i in (match.group(1), match.group(2), match.group(3)))
+
+                if query_date_min and flv_date < query_date_min:
+                    continue
+
+                if query_date_max and flv_date > query_date_max:
+                    continue
+
+        if not args.count_only:
+            if args.type == 'videos':
+                print(video_id, doc['user'], doc['views'])
+            else:
+                if flv_doc:
+                    for index in sorted(flv_doc.keys()):
+                        print(flv_doc[index])
+        else:
+            if args.type == 'videos':
+                count += 1
+            else:
+                count += len(doc.get('flv', ()))
+
+    if args.count_only:
+        print(count)
 
 
 def sample_size_command(args):
