@@ -9,7 +9,6 @@ noxious_hs
 massansc
 dreamhackdota
 dreamleague
-speeddemosarchivesda
 dreamhackcs
 esltv_cs
 roomonfire
