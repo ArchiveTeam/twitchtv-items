@@ -48,6 +48,7 @@ def main():
     list_parser.add_argument('--count-only', action='store_true')
     list_parser.add_argument('--video-type', choices=['a', 'c'])
     list_parser.add_argument('--user')
+    list_parser.add_argument('--user-file', type=argparse.FileType('r'))
     list_parser.set_defaults(func=list_command)
 
     sample_size_parser = subparsers.add_parser('samplesize')
@@ -203,6 +204,9 @@ def list_command(args):
     query_date_min = None
     query_date_max = None
 
+    if args.user_file:
+        users_query = frozenset(user.strip() for user in args.user_file)
+
     if args.date_min:
         query_date_min = tuple(int(i) for i in args.date_min.split('-'))
     if args.date_max:
@@ -221,6 +225,9 @@ def list_command(args):
             continue
 
         if args.user and doc['user'] != args.user:
+            continue
+
+        if users_query and doc['user'] not in users_query:
             continue
 
         flv_doc = doc.get('flv')
