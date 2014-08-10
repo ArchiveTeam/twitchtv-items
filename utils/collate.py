@@ -256,7 +256,7 @@ def list_command(args):
                 elif doc.get('no_flv'):
                     num_flv = 0
 
-                print(video_id, doc['user'], doc['views'], num_flv)
+                print(video_id, doc['user'].lower(), doc['views'], num_flv)
             else:
                 if flv_doc:
                     for index in sorted(flv_doc.keys()):
