@@ -47,11 +47,8 @@ def main():
     list_parser.add_argument('--date-max')
     list_parser.add_argument('--count-only', action='store_true')
     list_parser.add_argument('--video-type', choices=['a', 'c'])
+    list_parser.add_argument('--user')
     list_parser.set_defaults(func=list_command)
-
-    by_user_parser = subparsers.add_parser('byuser')
-    by_user_parser.add_argument('user')
-    by_user_parser.set_defaults(func=by_user_command)
 
     sample_size_parser = subparsers.add_parser('samplesize')
     sample_size_parser.set_defaults(func=sample_size_command)
@@ -223,6 +220,9 @@ def list_command(args):
         if args.views_max and doc['views'] > args.views_max:
             continue
 
+        if args.user and doc['user'] != args.user:
+            continue
+
         flv_doc = doc.get('flv')
 
         if query_date_min or query_date_max:
@@ -243,7 +243,13 @@ def list_command(args):
 
         if not args.count_only:
             if args.type == 'videos':
-                print(video_id, doc['user'], doc['views'])
+                num_flv = None
+                if flv_doc:
+                    num_flv = len(flv_doc)
+                elif doc.get('no_flv'):
+                    num_flv = 0
+
+                print(video_id, doc['user'], doc['views'], num_flv)
             else:
                 if flv_doc:
                     for index in sorted(flv_doc.keys()):
@@ -299,15 +305,6 @@ def sample_size_command(args):
             count += 1
 
     print('Count=', count, 'Total=', total, 'Avg=', int(total / count))
-
-
-def by_user_command(args):
-    db = args.db
-
-    for video_id in db:
-        doc = db[video_id]
-        if doc['user'] == args.user:
-            print(video_id, doc['user'], doc['views'])
 
 
 if __name__ == '__main__':
