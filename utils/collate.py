@@ -10,8 +10,8 @@ import shelve
 
 
 HIGHLIGHTS = ['highlights_top.csv', 'highlights_top_02.csv', 'highlights_top_03.csv', 'highlights_top_04.csv']
-FLV_URLS = ['highlights_top_flv_01.csv', 'highlights_top_flv_02-03.csv', 'disco_top_1000_views_flv.csv', 'suggestions_19553_flv.txt']
-VIDEO_TOP = ['video_top_discovery.csv', 'video_discovery_rand200k_suggestions-id19553.txt']
+FLV_URLS = ['highlights_top_flv_01.csv', 'highlights_top_flv_02-03.csv', 'disco_top_1000_views_flv.csv', 'suggestions_19553_flv.csv']
+VIDEO_TOP = ['video_top_discovery.csv', 'video_discovery_rand200k_suggestions-id19553.csv']
 
 
 def main():
@@ -189,7 +189,7 @@ def missing_flv_command(args):
         if args.views_min and doc['views'] < args.views_min:
             continue
 
-        if args.user and doc['user'] != args.user:
+        if args.user and doc['user'].lower() != args.user.lower():
             continue
 
         flv_dict = doc.get('flv')
@@ -205,7 +205,7 @@ def list_command(args):
     query_date_max = None
 
     if args.user_file:
-        users_query = frozenset(user.strip() for user in args.user_file)
+        users_query = frozenset(user.strip().lower() for user in args.user_file)
 
     if args.date_min:
         query_date_min = tuple(int(i) for i in args.date_min.split('-'))
@@ -224,10 +224,10 @@ def list_command(args):
         if args.views_max and doc['views'] > args.views_max:
             continue
 
-        if args.user and doc['user'] != args.user:
+        if args.user and doc['user'].lower() != args.user.lower():
             continue
 
-        if users_query and doc['user'] not in users_query:
+        if users_query and doc['user'].lower() not in users_query:
             continue
 
         flv_doc = doc.get('flv')
