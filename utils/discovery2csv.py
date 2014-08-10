@@ -61,7 +61,7 @@ def flv_file_discovery(doc, writer):
 
 
 def user_discovery(doc, writer):
-    for user in users:
+    for user in doc['users']:
         writer.writerow([user])
 
 
