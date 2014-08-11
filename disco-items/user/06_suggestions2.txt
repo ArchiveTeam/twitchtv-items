@@ -1,0 +1,9 @@
+user:
+user:bananasaurusrex
+user:dota2ti_cn_1
+user:dota2ti_cn_2
+user:dota2ti_cn_3
+user:dota2ti_cn_4
+user:dota2ti_kr_3
+user:dota2ti_kr_4
+user:tegiminis
