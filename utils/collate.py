@@ -206,6 +206,8 @@ def list_command(args):
 
     if args.user_file:
         users_query = frozenset(user.strip().lower() for user in args.user_file)
+    else:
+        users_query = None
 
     if args.date_min:
         query_date_min = tuple(int(i) for i in args.date_min.split('-'))
