@@ -11,7 +11,7 @@ import shelve
 
 HIGHLIGHTS = ['highlights_top.csv', 'highlights_top_02.csv', 'highlights_top_03.csv', 'highlights_top_04.csv']
 FLV_URLS = ['highlights_top_flv_01.csv', 'highlights_top_flv_02-03.csv', 'disco_top_1000_views_flv.csv', 'suggestions_19553_flv.csv']
-VIDEO_TOP = ['video_top_discovery.csv', 'video_discovery_rand200k_suggestions-id19553.csv']
+VIDEO_TOP = ['video_top_discovery.csv', 'video_discovery_rand200k_suggestions-id19553.csv', 'video_suggestions-id19616.csv']
 
 
 def main():
