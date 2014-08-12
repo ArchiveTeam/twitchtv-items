@@ -45,6 +45,8 @@ def main():
     list_parser.add_argument('--type', default='videos', choices=['videos', 'flvs'])
     list_parser.add_argument('--views-min', type=int)
     list_parser.add_argument('--views-max', type=int)
+    list_parser.add_argument('--flv-min', type=int)
+    list_parser.add_argument('--flv-max', type=int)
     list_parser.add_argument('--date-min')
     list_parser.add_argument('--date-max')
     list_parser.add_argument('--count-only', action='store_true')
@@ -244,6 +246,7 @@ def list_command(args):
         if args.views_max and doc['views'] > args.views_max:
             continue
 
+
         if args.user and doc['user'].lower() != args.user.lower():
             continue
 
@@ -278,6 +281,12 @@ def list_command(args):
                     num_flv = len(flv_doc)
                 elif doc.get('no_flv'):
                     num_flv = 0
+
+                if args.flv_min is not None and num_flv is not None and num_flv < args.flv_min:
+                    continue
+
+                if args.flv_max is not None and num_flv is not None and num_flv > args.flv_max:
+                    continue
 
                 print(video_id, doc['user'].lower(), doc['views'], num_flv)
             else:
