@@ -58,6 +58,13 @@ def main():
     sample_size_parser = subparsers.add_parser('samplesize')
     sample_size_parser.set_defaults(func=sample_size_command)
 
+    missing_user_parser = subparsers.add_parser('missinguser')
+    missing_user_parser.set_defaults(func=missing_user_command)
+
+    missing_user_list_group = missing_user_parser.add_mutually_exclusive_group(required=True)
+    missing_user_list_group.add_argument('--user')
+    missing_user_list_group.add_argument('--user-file', type=argparse.FileType('r'))
+
     args = arg_parser.parse_args()
     args.db = shelve.open(args.database)
     if hasattr(args, 'func'):
@@ -326,6 +333,26 @@ def sample_size_command(args):
             count += 1
 
     print('Count=', count, 'Total=', total, 'Avg=', int(total / count))
+
+
+def missing_user_command(args):
+    db = args.db
+
+    if args.user_file:
+        missing_users = set(user.strip().lower() for user in args.user_file)
+    else:
+        missing_users = set([args.user.lower()])
+
+    for video_id in db:
+        doc = db[video_id]
+
+        try:
+            missing_users.remove(doc['user'])
+        except KeyError:
+            pass
+
+    for user in missing_users:
+        print(user)
 
 
 if __name__ == '__main__':
