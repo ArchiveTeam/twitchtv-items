@@ -51,6 +51,7 @@ def main():
     list_parser.add_argument('--date-max')
     list_parser.add_argument('--count-only', action='store_true')
     list_parser.add_argument('--video-type', choices=['a', 'c'])
+    list_parser.add_argument('--by-user-top-video', type=int)
 
     user_list_group = list_parser.add_mutually_exclusive_group()
     user_list_group.add_argument('--user')
@@ -234,6 +235,14 @@ def list_command(args):
     if args.date_max:
         query_date_max = tuple(int(i) for i in args.date_max.split('-'))
 
+    if args.by_user_top_video:
+        user_to_video_table = {}
+
+        if args.type != 'videos':
+            raise Exception('by-user-top-video only supports videos type')
+        if args.count_only:
+            raise Exception('Count not supported')
+
     for video_id in db:
         doc = db[video_id]
 
@@ -245,7 +254,6 @@ def list_command(args):
 
         if args.views_max and doc['views'] > args.views_max:
             continue
-
 
         if args.user and doc['user'].lower() != args.user.lower():
             continue
@@ -288,7 +296,16 @@ def list_command(args):
                 if args.flv_max is not None and num_flv is not None and num_flv > args.flv_max:
                     continue
 
-                print(video_id, doc['user'].lower(), doc['views'], num_flv)
+                if args.by_user_top_video:
+                    user = doc['user'].lower()
+
+                    if user not in user_to_video_table:
+                        user_to_video_table[user] = []
+
+                    user_to_video_table[user].append((doc['views'], video_id))
+                else:
+                    print(video_id, doc['user'].lower(), doc['views'], num_flv)
+
             else:
                 if flv_doc:
                     for index in sorted(flv_doc.keys()):
@@ -301,6 +318,21 @@ def list_command(args):
 
     if args.count_only:
         print(count)
+
+    if args.by_user_top_video:
+        for user in user_to_video_table:
+            video_list = list(reversed(sorted(user_to_video_table[user])))
+            for views, video_id in video_list[:args.by_user_top_video]:
+                doc = db[video_id]
+                flv_doc = doc.get('flv')
+
+                num_flv = None
+                if flv_doc:
+                    num_flv = len(flv_doc)
+                elif doc.get('no_flv'):
+                    num_flv = 0
+
+                print(video_id, user, views, num_flv)
 
 
 def sample_size_command(args):
