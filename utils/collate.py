@@ -72,7 +72,8 @@ def main():
     user_list_group = list_parser.add_mutually_exclusive_group()
     user_list_group.add_argument('--user')
     user_list_group.add_argument('--user-file', type=argparse.FileType('r'))
-    user_list_group.add_argument('--not-user-file', type=argparse.FileType('r'))
+
+    list_parser.add_argument('--not-user-file', type=argparse.FileType('r'))
 
     list_parser.set_defaults(func=list_command)
 
