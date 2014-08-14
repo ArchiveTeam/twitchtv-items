@@ -88,6 +88,9 @@ def main():
     missing_user_list_group.add_argument('--user')
     missing_user_list_group.add_argument('--user-file', type=argparse.FileType('r'))
 
+    dump_parser = subparsers.add_parser('dump')
+    dump_parser.set_defaults(func=dump_command)
+
     args = arg_parser.parse_args()
     args.db = shelve.open(args.database)
     if hasattr(args, 'func'):
@@ -414,6 +417,15 @@ def missing_user_command(args):
 
     for user in missing_users:
         print(user)
+
+
+def dump_command(args):
+    db = args.db
+
+    for video_id in db:
+        doc = db[video_id]
+        doc['video_id'] = video_id
+        print(json.dumps(doc))
 
 
 if __name__ == '__main__':
