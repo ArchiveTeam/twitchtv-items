@@ -262,11 +262,6 @@ def list_command(args):
     if args.by_user_top_video:
         user_to_video_table = {}
 
-        if args.type != 'videos':
-            raise Exception('by-user-top-video only supports videos type')
-        if args.count_only:
-            raise Exception('Count not supported')
-
     for video_id in db:
         doc = db[video_id]
 
@@ -356,7 +351,11 @@ def list_command(args):
                 elif doc.get('no_flv'):
                     num_flv = 0
 
-                print(video_id, user, views, num_flv)
+                if args.type == 'videos':
+                    print(video_id, user, views, num_flv)
+                else:
+                    for index in sorted(flv_doc.keys()):
+                        print(flv_doc[index])
 
 
 def sample_size_command(args):
