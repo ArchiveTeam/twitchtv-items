@@ -24,6 +24,7 @@ FLV_URLS = [
     'suggestions_flv_19795_and_socialblade.csv',
     'top_5_per_chan_100_views_flv.csv',
     'suggestions_19851_flv.csv',
+    'top_5_per_chan_patchup1.csv',
     ]
 VIDEO_TOP = [
     'video_top_discovery.csv',
