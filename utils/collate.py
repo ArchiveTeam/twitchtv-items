@@ -326,9 +326,17 @@ def list_command(args):
                     print(video_id, doc['user'].lower(), doc['views'], num_flv)
 
             else:
-                if flv_doc:
-                    for index in sorted(flv_doc.keys()):
-                        print(flv_doc[index])
+                if args.by_user_top_video:
+                    user = doc['user'].lower()
+
+                    if user not in user_to_video_table:
+                        user_to_video_table[user] = []
+
+                    user_to_video_table[user].append((doc['views'], video_id))
+                else:
+                    if flv_doc:
+                        for index in sorted(flv_doc.keys()):
+                            print(flv_doc[index])
         else:
             if args.type == 'videos':
                 count += 1
@@ -354,8 +362,9 @@ def list_command(args):
                 if args.type == 'videos':
                     print(video_id, user, views, num_flv)
                 else:
-                    for index in sorted(flv_doc.keys()):
-                        print(flv_doc[index])
+                    if flv_doc:
+                        for index in sorted(flv_doc.keys()):
+                            print(flv_doc[index])
 
 
 def sample_size_command(args):
