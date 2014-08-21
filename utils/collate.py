@@ -26,6 +26,7 @@ FLV_URLS = [
     'suggestions_19851_flv.csv',
     'top_5_per_chan_patchup1.csv',
     'suggestions_19874_flv.csv',
+    'suggestions_19911_flv.csv',
     ]
 VIDEO_TOP = [
     'video_top_discovery.csv',
@@ -36,6 +37,7 @@ VIDEO_TOP = [
     'video_discovery_rand200k_2.csv',
     'video_suggestions-id19851.csv',
     'video_suggestions-id19795.csv',
+    'video_suggestions-id19911.csv',
     ]
 
 
