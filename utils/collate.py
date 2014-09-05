@@ -7,6 +7,7 @@ import random
 import re
 import requests
 import shelve
+import glob
 
 
 HIGHLIGHTS = [
@@ -182,6 +183,19 @@ def import_data(args):
                 doc['user'] = user
                 doc['views'] = views
 
+                db[video_id] = doc
+
+    for filename in glob.glob('../items/video_pages/*.txt'):
+        print('Import tracker items', filename)
+        with open(filename) as lines:
+            for line in lines:
+                line = line.strip()
+                if not line:
+                    continue
+
+                video_id = line.split(':')[1]
+                doc = db[video_id]
+                doc['item_added_to_tracker'] = True
                 db[video_id] = doc
 
 
